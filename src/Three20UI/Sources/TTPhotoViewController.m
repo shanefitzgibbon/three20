@@ -92,11 +92,33 @@ static const NSInteger kActivityLabelTag          = 96;
   return self;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (id)initWithPhoto:(id<TTPhoto>)photo andOptions:(TTPhotoViewControllerOptions)theOptions{
+    if (self = [self initWithNibName:nil bundle:nil]) {
+        self.centerPhoto = photo;
+        _options = theOptions;
+    }
+    
+    return self;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+- (id)initWithPhotoSource:(id<TTPhotoSource>)photoSource andOptions:(TTPhotoViewControllerOptions)theOptions{
+    if (self = [self initWithNibName:nil bundle:nil]) {
+        self.photoSource = photoSource;
+        _options = theOptions;
+    }
+    
+    return self;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)initWithPhoto:(id<TTPhoto>)photo {
   if (self = [self initWithNibName:nil bundle:nil]) {
     self.centerPhoto = photo;
+    _options = TTPhotoViewControllerOptionsNone;
   }
 
   return self;
@@ -107,6 +129,7 @@ static const NSInteger kActivityLabelTag          = 96;
 - (id)initWithPhotoSource:(id<TTPhotoSource>)photoSource {
   if (self = [self initWithNibName:nil bundle:nil]) {
     self.photoSource = photoSource;
+    _options = TTPhotoViewControllerOptionsNone;
   }
 
   return self;
@@ -116,6 +139,7 @@ static const NSInteger kActivityLabelTag          = 96;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (id)init {
   if (self = [self initWithNibName:nil bundle:nil]) {
+    _options = TTPhotoViewControllerOptionsNone;
   }
 
   return self;
@@ -199,37 +223,42 @@ static const NSInteger kActivityLabelTag          = 96;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)updateChrome {
-  if (_photoSource.numberOfPhotos < 2) {
-    self.title = _photoSource.title;
-
-  } else {
-    self.title = [NSString stringWithFormat:
-                  TTLocalizedString(@"%d of %d", @"Current page in photo browser (1 of 10)"),
-                  _centerPhotoIndex+1, _photoSource.numberOfPhotos];
+  if(_options & TTPhotoViewControllerOptionsNoChrome){
+    NSLog(@"update photo label here");
   }
+  else{
+    if (_photoSource.numberOfPhotos < 2) {
+      self.title = _photoSource.title;
 
-  if (![self.ttPreviousViewController isKindOfClass:[TTThumbsViewController class]]) {
-    if (_photoSource.numberOfPhotos > 1) {
-      self.navigationItem.rightBarButtonItem =
-      [[[UIBarButtonItem alloc] initWithTitle:TTLocalizedString(@"See All",
-                                                                @"See all photo thumbnails")
-                                        style:UIBarButtonItemStyleBordered
-                                       target:self
-                                       action:@selector(showThumbnails)]
-       autorelease];
+    } else {
+      self.title = [NSString stringWithFormat:
+                    TTLocalizedString(@"%d of %d", @"Current page in photo browser (1 of 10)"),
+                    _centerPhotoIndex+1, _photoSource.numberOfPhotos];
+    }
+
+    if (![self.ttPreviousViewController isKindOfClass:[TTThumbsViewController class]]) {
+      if (_photoSource.numberOfPhotos > 1) {
+        self.navigationItem.rightBarButtonItem =
+        [[[UIBarButtonItem alloc] initWithTitle:TTLocalizedString(@"See All",
+                                                                  @"See all photo thumbnails")
+                                          style:UIBarButtonItemStyleBordered
+                                         target:self
+                                         action:@selector(showThumbnails)]
+         autorelease];
+
+      } else {
+        self.navigationItem.rightBarButtonItem = nil;
+      }
 
     } else {
       self.navigationItem.rightBarButtonItem = nil;
     }
 
-  } else {
-    self.navigationItem.rightBarButtonItem = nil;
+    UIBarButtonItem* playButton = [_toolbar itemWithTag:1];
+    playButton.enabled = _photoSource.numberOfPhotos > 1;
+    _previousButton.enabled = _centerPhotoIndex > 0;
+    _nextButton.enabled = _centerPhotoIndex >= 0 && _centerPhotoIndex < _photoSource.numberOfPhotos-1;
   }
-
-  UIBarButtonItem* playButton = [_toolbar itemWithTag:1];
-  playButton.enabled = _photoSource.numberOfPhotos > 1;
-  _previousButton.enabled = _centerPhotoIndex > 0;
-  _nextButton.enabled = _centerPhotoIndex >= 0 && _centerPhotoIndex < _photoSource.numberOfPhotos-1;
 }
 
 
@@ -510,40 +539,45 @@ static const NSInteger kActivityLabelTag          = 96;
   _scrollView.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight;
   [_innerView addSubview:_scrollView];
 
-  _nextButton =
-    [[UIBarButtonItem alloc] initWithImage:TTIMAGE(@"bundle://Three20.bundle/images/nextIcon.png")
-                                     style:UIBarButtonItemStylePlain
-                                    target:self
-                                    action:@selector(nextAction)];
-  _previousButton =
-    [[UIBarButtonItem alloc] initWithImage:
-     TTIMAGE(@"bundle://Three20.bundle/images/previousIcon.png")
-                                     style:UIBarButtonItemStylePlain
-                                    target:self
-                                    action:@selector(previousAction)];
-
-  UIBarButtonItem* playButton =
-    [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
-                                                   target:self
-                                                   action:@selector(playAction)]
-     autorelease];
-  playButton.tag = 1;
-
-  UIBarItem* space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
-                       UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
-
-  _toolbar = [[UIToolbar alloc] initWithFrame:
-              CGRectMake(0, screenFrame.size.height - TT_ROW_HEIGHT,
-                         screenFrame.size.width, TT_ROW_HEIGHT)];
-  if (self.navigationBarStyle == UIBarStyleDefault) {
-    _toolbar.tintColor = TTSTYLEVAR(toolbarTintColor);
+  if (_options & TTPhotoViewControllerOptionsNoChrome) {
+    NSLog(@"create the photo label here");
   }
+  else {
+    _nextButton =
+      [[UIBarButtonItem alloc] initWithImage:TTIMAGE(@"bundle://Three20.bundle/images/nextIcon.png")
+                                       style:UIBarButtonItemStylePlain
+                                      target:self
+                                      action:@selector(nextAction)];
+    _previousButton =
+      [[UIBarButtonItem alloc] initWithImage:
+       TTIMAGE(@"bundle://Three20.bundle/images/previousIcon.png")
+                                       style:UIBarButtonItemStylePlain
+                                      target:self
+                                      action:@selector(previousAction)];
 
-  _toolbar.barStyle = self.navigationBarStyle;
-  _toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
-  _toolbar.items = [NSArray arrayWithObjects:
-                    space, _previousButton, space, _nextButton, space, nil];
-  [_innerView addSubview:_toolbar];
+    UIBarButtonItem* playButton =
+      [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay
+                                                     target:self
+                                                     action:@selector(playAction)]
+       autorelease];
+    playButton.tag = 1;
+
+    UIBarItem* space = [[[UIBarButtonItem alloc] initWithBarButtonSystemItem:
+                         UIBarButtonSystemItemFlexibleSpace target:nil action:nil] autorelease];
+
+    _toolbar = [[UIToolbar alloc] initWithFrame:
+                CGRectMake(0, screenFrame.size.height - TT_ROW_HEIGHT,
+                           screenFrame.size.width, TT_ROW_HEIGHT)];
+    if (self.navigationBarStyle == UIBarStyleDefault) {
+      _toolbar.tintColor = TTSTYLEVAR(toolbarTintColor);
+    }
+
+    _toolbar.barStyle = self.navigationBarStyle;
+    _toolbar.autoresizingMask = UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleTopMargin;
+    _toolbar.items = [NSArray arrayWithObjects:
+                      space, _previousButton, space, _nextButton, space, nil];
+    [_innerView addSubview:_toolbar];
+  }
 }
 
 
@@ -845,17 +879,51 @@ static const NSInteger kActivityLabelTag          = 96;
   self.centerPhotoView.hidesExtras = NO;
 }
 
+- (BOOL) inLeftThirdOfView:(UITouch*)touch {
+  CGPoint tapPoint = [touch locationInView:self.view];
+  if (tapPoint.x < (self.view.bounds.size.width/3)){
+    return YES;
+  }
+  return NO;
+}
+
+- (BOOL) inRightThirdOfView:(UITouch*)touch {
+  CGPoint tapPoint = [touch locationInView:self.view];
+  if (tapPoint.x > (self.view.bounds.size.width/3*2)){
+    return YES;
+  }
+  return NO;
+}
+
+- (BOOL) inCenterThirdOfView:(UITouch*)touch {
+  if (![self inRightThirdOfView:touch] && ![self inLeftThirdOfView:touch]){
+    return YES;
+  }
+  return NO;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)scrollView:(TTScrollView*)scrollView tapped:(UITouch*)touch {
-  if ([self isShowingChrome]) {
-    [self showBars:NO animated:YES];
+  if(_options & TTPhotoViewControllerOptionsNoChrome){
+    BOOL previousEnabled = _centerPhotoIndex > 0;
+    BOOL nextEnabled = _centerPhotoIndex >= 0 && _centerPhotoIndex < _photoSource.numberOfPhotos-1;
+    if ([self inRightThirdOfView:touch] && nextEnabled){
+      [self nextAction];      
+    }
+    else if ([self inLeftThirdOfView:touch] && previousEnabled){
+      [self previousAction];
+    }    
+  }
+  else{
+    if ([self isShowingChrome]) {
+      [self showBars:NO animated:YES];
 
-  } else {
-    [self showBars:YES animated:NO];
+    } else {
+      [self showBars:YES animated:NO];
+    }
   }
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////

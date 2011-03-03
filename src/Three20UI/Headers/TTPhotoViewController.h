@@ -25,6 +25,13 @@
 @class TTPhotoView;
 @class TTStyle;
 
+//! Parser options
+enum TTPhotoViewControllerOptions {
+    TTPhotoViewControllerOptionsNone = 0, //!< No options
+    TTPhotoViewControllerOptionsNoChrome = 1 << 0, //!< No navigation chrome will be displayed. Tap regions will be used instead of arrow buttons
+};
+typedef NSUInteger TTPhotoViewControllerOptions;
+
 @interface TTPhotoViewController : TTModelViewController <
   TTScrollViewDelegate,
   TTScrollViewDataSource,
@@ -55,6 +62,8 @@
   TTThumbsViewController* _thumbsController;
 
   id<TTPhotoSource> _photoSource;
+    
+  TTPhotoViewControllerOptions _options;
 }
 
 /**
@@ -89,6 +98,8 @@
 
 - (id)initWithPhoto:(id<TTPhoto>)photo;
 - (id)initWithPhotoSource:(id<TTPhotoSource>)photoSource;
+- (id)initWithPhoto:(id<TTPhoto>)photo andOptions:(TTPhotoViewControllerOptions)theOptions;
+- (id)initWithPhotoSource:(id<TTPhotoSource>)photoSource andOptions:(TTPhotoViewControllerOptions)theOptions;
 
 /**
  * Creates a photo view for a new page.
