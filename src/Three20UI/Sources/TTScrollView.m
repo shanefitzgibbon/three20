@@ -910,10 +910,10 @@ static const CGFloat kFrameDuration = 1.0/40.0;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (BOOL)canZoom {
+- (BOOL)canZoom:(UITouch*)touch {
   return _zoomEnabled && !_holding
-        && (_zooming || ![_delegate respondsToSelector:@selector(scrollViewShouldZoom:)]
-            || [_delegate scrollViewShouldZoom:self]);
+    && (_zooming || ![_delegate respondsToSelector:@selector(scrollViewShouldZoom:onTouch:)]
+        || [_delegate scrollViewShouldZoom:self onTouch:touch]);
 }
 
 
@@ -966,7 +966,7 @@ static const CGFloat kFrameDuration = 1.0/40.0;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)startTapTimer:(UITouch*)touch {
-  _tapTimer = [NSTimer scheduledTimerWithTimeInterval:0.2 target:self selector:@selector(tapTimer:)
+  _tapTimer = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(tapTimer:)
     userInfo:touch repeats:NO];
 }
 
@@ -1414,7 +1414,7 @@ static const CGFloat kFrameDuration = 1.0/40.0;
     // Renew.
     _renewPosition = CGPointMake(_touchEdges.left, _touchEdges.top);
 
-    if (![self edgesAreZoomed:pageEdges] || self.canZoom) {
+      if (![self edgesAreZoomed:pageEdges] || [self canZoom:nil]) {
       _pageEdges = pageEdges;
       [self updateZooming:pageEdges];
       [self setNeedsLayout];
@@ -1474,7 +1474,7 @@ static const CGFloat kFrameDuration = 1.0/40.0;
 
         // Double tap, zoom out to fit or zoom in to the 1/3 of the maximum scale.
 
-        } else if (touch.tapCount == 2 && self.canZoom) {
+        } else if (touch.tapCount == 2 && [self canZoom:touch]) {
           CGPoint pointToZoom = [self touchLocation:touch];
 
           if (self.zoomed) {
@@ -1755,7 +1755,7 @@ static const CGFloat kFrameDuration = 1.0/40.0;
   // Not animated, just apply.
   else {
     UIEdgeInsets pageEdges = [self resistPageEdges:zoomEdges];
-    if (![self edgesAreZoomed:pageEdges] || self.canZoom) {
+      if (![self edgesAreZoomed:pageEdges] || [self canZoom:nil]) {
       _pageEdges = pageEdges;
       [self updateZooming:pageEdges];
       [self setNeedsLayout];

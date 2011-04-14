@@ -224,7 +224,7 @@ static const NSInteger kActivityLabelTag          = 96;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 - (void)updateChrome {
   if(_options & TTPhotoViewControllerOptionsNoChrome){
-    NSLog(@"update photo label here");
+    //NSLog(@"update photo label here");
   }
   else{
     if (_photoSource.numberOfPhotos < 2) {
@@ -863,7 +863,14 @@ static const NSInteger kActivityLabelTag          = 96;
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-- (BOOL)scrollViewShouldZoom:(TTScrollView*)scrollView {
+- (BOOL)scrollViewShouldZoom:(TTScrollView*)scrollView onTouch:(UITouch *)touch{
+    if (touch){
+      if (_options & TTPhotoViewControllerOptionsDisableDoubleTapToZoom){
+        if (touch.tapCount == 2){
+            return NO;
+        }
+      }
+    }
   return self.centerPhotoView.image != self.centerPhotoView.defaultImage;
 }
 

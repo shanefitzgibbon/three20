@@ -25,10 +25,10 @@
 @class TTPhotoView;
 @class TTStyle;
 
-//! Parser options
 enum TTPhotoViewControllerOptions {
     TTPhotoViewControllerOptionsNone = 0, //!< No options
     TTPhotoViewControllerOptionsNoChrome = 1 << 0, //!< No navigation chrome will be displayed. Tap regions will be used instead of arrow buttons
+    TTPhotoViewControllerOptionsDisableDoubleTapToZoom = 1 << 1, //dissable use of the double tap guesture to zoom out to fit or zoom in to the 1/3 of the maximum scale
 };
 typedef NSUInteger TTPhotoViewControllerOptions;
 
@@ -65,6 +65,8 @@ typedef NSUInteger TTPhotoViewControllerOptions;
     
   TTPhotoViewControllerOptions _options;
 }
+
+
 
 /**
  * The source of a sequential photo collection that will be displayed.

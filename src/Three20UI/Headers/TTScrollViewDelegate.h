@@ -40,7 +40,7 @@
 
 - (void)scrollViewDidEndDecelerating:(TTScrollView*)scrollView;
 
-- (BOOL)scrollViewShouldZoom:(TTScrollView*)scrollView;
+- (BOOL)scrollViewShouldZoom:(TTScrollView*)scrollView onTouch:(UITouch*)touch;
 
 - (void)scrollViewDidBeginZooming:(TTScrollView*)scrollView;
 
